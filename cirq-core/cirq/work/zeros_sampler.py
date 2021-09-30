@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import abc
+import collections
 from typing import Dict, List, TYPE_CHECKING
 
 import numpy as np
@@ -58,12 +59,26 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         """
         if self.device:
             self.device.validate_circuit(program)
-        measurements: Dict[str, np.ndarray] = {}
+        num_qubits: Dict[str, int] = {}
+        num_instances: Dict[str, int] = collections.Counter()
         for op in program.all_operations():
             key = protocols.measurement_key_name(op, default=None)
             if key is not None:
-                measurements[key] = np.zeros((repetitions, len(op.qubits)), dtype=int)
+                n = len(op.qubits)
+                prev_n = num_qubits.setdefault(key, n)
+                if n != prev_n:
+                    raise ValueError(
+                        "Different num qubits for repeated measurement: "
+                        f"key={key!r}, prev_n={prev_n}, n={n}"
+                    )
+                num_instances[key] += 1
         return [
-            study.Result(params=param_resolver, measurements=measurements)
+            study.Result(
+                params=param_resolver,
+                measurements2={
+                    k: np.zeros((repetitions, num_instances[k], n), dtype=int)
+                    for k, n in num_qubits.items()
+                },
+            )
             for param_resolver in study.to_resolvers(params)
         ]
