@@ -4,6 +4,7 @@
     "project": "Cirq",
     "project_url": "https://quantumai.google/cirq",
     "repo": ".",
+    "repo_subdir": "cirq-core",
     "branches": ["master"],
     "dvcs": "git",
     "environment_type": "virtualenv",
@@ -14,4 +15,5 @@
     "results_dir": ".asv/results",
     "html_dir": ".asv/html",
     "hash_length": 8,
+    "install_command": ["in-dir=/home/vtomole/Cirq python -mpip install ./cirq-google"]
 }
