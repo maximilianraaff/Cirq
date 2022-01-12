@@ -61,7 +61,7 @@ dev_requirements = [r.strip() for r in dev_requirements if "git+http" not in r]
 setup(
     name=name,
     version=__version__,
-    url='http://github.com/quantumlib/cirq',
+    url='http://github.com/maximilianraaff/cirq',
     author='The Cirq Developers',
     author_email='cirq-dev@googlegroups.com',
     python_requires='>=3.6.0',
