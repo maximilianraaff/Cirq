@@ -13,28 +13,31 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 ##############################################################################
-from cirq_rigetti.sampler import (
-    RigettiQCSSampler,
-    get_rigetti_qcs_sampler,
-)
-from cirq_rigetti.service import (
-    RigettiQCSService,
-    get_rigetti_qcs_service,
-)
+# from cirq_rigetti.sampler import (
+#     RigettiQCSSampler,
+#     get_rigetti_qcs_sampler,
+# )
+# from cirq_rigetti.service import (
+#     RigettiQCSService,
+#     get_rigetti_qcs_service,
+# )
+# from cirq_rigetti import circuit_sweep_executors
+# from cirq_rigetti import circuit_transformers
+# from cirq_rigetti.aspen_device import (
+#     RigettiQCSAspenDevice,
+#     AspenQubit,
+#     OctagonalQubit,
+#     UnsupportedQubit,
+#     UnsupportedRigettiQCSOperation,
+#     UnsupportedRigettiQCSQuantumProcessor,
+# )
+#
+#
+# # Registers the cirq_rigetti's public classes for JSON serialization.
+# from cirq.protocols.json_serialization import _register_resolver
+# from cirq_rigetti.json_resolver_cache import _class_resolver_dictionary
+#
+# _register_resolver(_class_resolver_dictionary)
+
+from cirq_rigetti.sampler import RigettiQCSSampler
 from cirq_rigetti import circuit_sweep_executors
-from cirq_rigetti import circuit_transformers
-from cirq_rigetti.aspen_device import (
-    RigettiQCSAspenDevice,
-    AspenQubit,
-    OctagonalQubit,
-    UnsupportedQubit,
-    UnsupportedRigettiQCSOperation,
-    UnsupportedRigettiQCSQuantumProcessor,
-)
-
-
-# Registers the cirq_rigetti's public classes for JSON serialization.
-from cirq.protocols.json_serialization import _register_resolver
-from cirq_rigetti.json_resolver_cache import _class_resolver_dictionary
-
-_register_resolver(_class_resolver_dictionary)
