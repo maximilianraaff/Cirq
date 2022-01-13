@@ -13,6 +13,6 @@ qcs-api-client~=0.8.0
 retrying~=1.3.3
 rfc3339~=6.2
 rfc3986~=1.5.0
-six~=1.16.0
+six>=1.15.0
 sniffio~=1.2.0
 toml~=0.10.2
