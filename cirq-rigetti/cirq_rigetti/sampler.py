@@ -24,6 +24,15 @@ from cirq_rigetti import circuit_sweep_executors as executors
 
 _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resolution
 
+class ExecutionCounter():
+    """
+    Counter class passed to RigettiQCSSampler
+    """
+    def __init__(self):
+        self.execution_counter = 0
+
+    def add(self, num):
+        self.execution_counter += num
 
 class RigettiQCSSampler(cirq.Sampler):
     """This class supports running circuits on QCS quantum hardware as well as pyQuil's
@@ -36,6 +45,7 @@ class RigettiQCSSampler(cirq.Sampler):
         quantum_computer: QuantumComputer,
         executor: executors.CircuitSweepExecutor = _default_executor,
         transformer: transformers.CircuitTransformer = transformers.default,
+        execution_counter = ExecutionCounter(),
     ):
         """Initializes a `RigettiQCSSampler`.
 
@@ -47,12 +57,14 @@ class RigettiQCSSampler(cirq.Sampler):
                 own callable or any static method on `CircuitSweepExecutors`.
             transformer: A callable that transforms the `cirq.Circuit` into a `pyquil.Program`.
                 You may pass your own callable or any static method on `CircuitTransformers`.
+            execution_counter: counter object that contains an integer attribute and an add(INT)-method
+            that adds INT to the counter attribute.
         """
 
         self._quantum_computer = quantum_computer
         self.executor = executor
         self.transformer = transformer
-        self.execution_counter = 0
+        self.execution_counter = execution_counter
 
     def run_sweep(
         self,
@@ -74,7 +86,7 @@ class RigettiQCSSampler(cirq.Sampler):
         """
 
         resolvers = [r for r in cirq.to_resolvers(params)]
-        self.execution_counter += 1
+        self.execution_counter.add(1)
         return self.executor(
             quantum_computer=self._quantum_computer,
             circuit=program.unfreeze(copy=False),
