@@ -19,7 +19,7 @@
 
 from typing import Dict, Union, Sequence, cast, List, Any, Optional
 from pyquil import Program
-from pyquil.api import QuantumComputer #, QuantumExecutable
+from pyquil.api import QuantumComputer, QuantumExecutable
 from pyquil.quilbase import Declare
 import cirq
 from typing_extensions import Protocol
@@ -27,62 +27,9 @@ from cirq_rigetti.logging import logger
 from cirq_rigetti import circuit_transformers as transformers
 
 
-# def _execute_and_read_result(
-#     quantum_computer: QuantumComputer,
-#     executable: QuantumExecutable,
-#     measurement_id_map: Dict[str, str],
-#     resolver: cirq.ParamResolverOrSimilarType,
-#     memory_map: Optional[Dict[str, Union[int, float, Sequence[int], Sequence[float]]]] = None,
-# ) -> cirq.Result:
-#     """Execute the `pyquil.api.QuantumExecutable` and parse the measurements into
-#     a `cirq.Result`.
-#
-#     Args:
-#         quantum_computer: The `pyquil.api.QuantumComputer` on which to execute
-#             and from which to read results.
-#         executable: The fully compiled `pyquil.api.QuantumExecutable` to run.
-#         measurement_id_map: A dict mapping cirq measurement keys to pyQuil
-#             read out regions.
-#         resolver: The `cirq.ParamResolverOrSimilarType` to include on
-#             the returned `cirq.Result`.
-#         memory_map: A dict of values to write to memory values on the
-#             `quantum_computer`. The `pyquil.api.QuantumAbstractMachine` reads these
-#             values into memory regions on the pre-compiled `executable` during execution.
-#
-#     Returns:
-#         A `cirq.Result` with measurements read from the `quantum_computer`.
-#
-#     Raises:
-#         ValueError: measurement_id_map references an undefined pyQuil readout region.
-#     """
-#     if memory_map is None:
-#         memory_map = {}
-#
-#     for region_name, values in memory_map.items():
-#         executable.write_memory(region_name=region_name, value=values)
-#     qam_execution_result = quantum_computer.qam.run(executable)
-#
-#     measurements = {}
-#     # For every key, value in QuilOutput#measurement_id_map, use the value to read
-#     # Rigetti QCS results and assign to measurements by key.
-#     for cirq_memory_key, pyquil_region in measurement_id_map.items():
-#         readout = qam_execution_result.readout_data.get(pyquil_region)
-#         if readout is None:
-#             raise ValueError(f'readout data does not have values for region "{pyquil_region}"')
-#         measurements[cirq_memory_key] = readout
-#     logger.debug(f"measurement_id_map {measurement_id_map}")
-#     logger.debug(f"measurements {measurements}")
-#
-#     # collect results in a cirq.Result.
-#     result = cirq.Result(
-#         params=cast(cirq.ParamResolver, resolver or cirq.ParamResolver({})),
-#         measurements=measurements,
-#     )  # noqa
-#     return result
-
-def _execute_and_read_result_pyquil_282_compatible(
+def _execute_and_read_result(
     quantum_computer: QuantumComputer,
-    executable: Program,
+    executable: QuantumExecutable,
     measurement_id_map: Dict[str, str],
     resolver: cirq.ParamResolverOrSimilarType,
     memory_map: Optional[Dict[str, Union[int, float, Sequence[int], Sequence[float]]]] = None,
@@ -132,7 +79,6 @@ def _execute_and_read_result_pyquil_282_compatible(
         measurements=measurements,
     )  # noqa
     return result
-
 
 def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[str, Any]:
     """Converts a `cirq.ParamResolverOrSimilarType` to a dictionary.
@@ -207,45 +153,45 @@ class CircuitSweepExecutor(Protocol):
         """
 
 
-# def without_quilc_compilation(
-#     *,
-#     quantum_computer: QuantumComputer,
-#     circuit: cirq.Circuit,
-#     resolvers: Sequence[cirq.ParamResolverOrSimilarType],
-#     repetitions: int,
-#     transformer: transformers.CircuitTransformer = transformers.default,
-# ) -> List[cirq.Result]:
-#     """This `CircuitSweepExecutor` will bypass quilc entirely, treating the transformed
-#     `cirq.Circuit` as native Quil.
-#
-#     Args:
-#         quantum_computer: The `pyquil.api.QuantumComputer` against which to execute the circuit.
-#         circuit: The `cirq.Circuit` to transform into a `pyquil.Program` and executed on the
-#             `quantum_computer`.
-#         resolvers: A sequence of parameter resolvers that `cirq.protocols.resolve_parameters` will
-#             use to fully resolve the circuit.
-#         repetitions: Number of times to run each iteration through the `resolvers`. For a given
-#             resolver, the `cirq.Result` will include a measurement for each repetition.
-#         transformer: A callable that transforms the `cirq.Circuit` into a `pyquil.Program`.
-#             You may pass your own callable or any function from `cirq_rigetti.circuit_transformers`.
-#
-#     Returns:
-#         A list of `cirq.Result`, each corresponding to a resolver in `resolvers`.
-#     """
-#
-#     cirq_results = []
-#
-#     for resolver in resolvers:
-#         resolved_circuit = cirq.protocols.resolve_parameters(circuit, resolver)
-#         program, measurement_id_map = transformer(circuit=resolved_circuit)
-#         program = program.wrap_in_numshots_loop(repetitions)
-#         executable = quantum_computer.compile(program, optimize=False, to_native_gates=False)
-#         result = _execute_and_read_result(
-#             quantum_computer, executable, measurement_id_map, resolver
-#         )
-#         cirq_results.append(result)
-#
-#     return cirq_results
+def without_quilc_compilation(
+    *,
+    quantum_computer: QuantumComputer,
+    circuit: cirq.Circuit,
+    resolvers: Sequence[cirq.ParamResolverOrSimilarType],
+    repetitions: int,
+    transformer: transformers.CircuitTransformer = transformers.default,
+) -> List[cirq.Result]:
+    """This `CircuitSweepExecutor` will bypass quilc entirely, treating the transformed
+    `cirq.Circuit` as native Quil.
+
+    Args:
+        quantum_computer: The `pyquil.api.QuantumComputer` against which to execute the circuit.
+        circuit: The `cirq.Circuit` to transform into a `pyquil.Program` and executed on the
+            `quantum_computer`.
+        resolvers: A sequence of parameter resolvers that `cirq.protocols.resolve_parameters` will
+            use to fully resolve the circuit.
+        repetitions: Number of times to run each iteration through the `resolvers`. For a given
+            resolver, the `cirq.Result` will include a measurement for each repetition.
+        transformer: A callable that transforms the `cirq.Circuit` into a `pyquil.Program`.
+            You may pass your own callable or any function from `cirq_rigetti.circuit_transformers`.
+
+    Returns:
+        A list of `cirq.Result`, each corresponding to a resolver in `resolvers`.
+    """
+
+    cirq_results = []
+
+    for resolver in resolvers:
+        resolved_circuit = cirq.protocols.resolve_parameters(circuit, resolver)
+        program, measurement_id_map = transformer(circuit=resolved_circuit)
+        program = program.wrap_in_numshots_loop(repetitions)
+        executable = quantum_computer.compile(program, optimize=False, to_native_gates=False)
+        result = _execute_and_read_result(
+            quantum_computer, executable, measurement_id_map, resolver
+        )
+        cirq_results.append(result)
+
+    return cirq_results
 
 
 def with_quilc_compilation_and_cirq_parameter_resolution(
@@ -283,7 +229,7 @@ def with_quilc_compilation_and_cirq_parameter_resolution(
         program.wrap_in_numshots_loop(repetitions)
 
         executable = quantum_computer.compile(program)
-        result = _execute_and_read_result_pyquil_282_compatible(
+        result = _execute_and_read_result(
             quantum_computer, executable, measurement_id_map, resolver
         )
         cirq_results.append(result)
@@ -291,51 +237,51 @@ def with_quilc_compilation_and_cirq_parameter_resolution(
     return cirq_results
 
 
-# def with_quilc_parametric_compilation(
-#     *,
-#     quantum_computer: QuantumComputer,
-#     circuit: cirq.Circuit,
-#     resolvers: Sequence[cirq.ParamResolverOrSimilarType],
-#     repetitions: int,
-#     transformer: transformers.CircuitTransformer = transformers.default,
-# ) -> List[cirq.Result]:
-#     """This `CircuitSweepExecutor` will compile the `circuit` using quilc as a
-#     parameterized `pyquil.api.QuantumExecutable` and on each iteration of
-#     `resolvers`, rather than resolving the `circuit` with `cirq.protocols.resolve_parameters`,
-#     it will attempt to cast the resolver to a dict and pass it as a memory map to
-#     to `pyquil.api.QuantumComputer`.
-#
-#     Args:
-#         quantum_computer: The `pyquil.api.QuantumComputer` against which to execute the circuit.
-#         circuit: The `cirq.Circuit` to transform into a `pyquil.Program` and executed on the
-#             `quantum_computer`.
-#         resolvers: A sequence of parameter resolvers that this executor will write to memory
-#             on a copy of the `pyquil.api.QuantumExecutable` for each parameter sweep.
-#         repetitions: Number of times to run each iteration through the `resolvers`. For a given
-#             resolver, the `cirq.Result` will include a measurement for each repetition.
-#         transformer: A callable that transforms the `cirq.Circuit` into a `pyquil.Program`.
-#             You may pass your own callable or any function from `cirq_rigetti.circuit_transformers`.
-#
-#     Returns:
-#         A list of `cirq.Result`, each corresponding to a resolver in `resolvers`.
-#     """
-#
-#     program, measurement_id_map = transformer(circuit=circuit)
-#     program = _prepend_real_declarations(program=program, resolvers=resolvers)
-#     program.wrap_in_numshots_loop(repetitions)
-#     executable = quantum_computer.compile(program)
-#
-#     cirq_results = []
-#     for resolver in resolvers:
-#         memory_map = _get_param_dict(resolver)
-#         logger.debug(f"running pre-compiled parametric circuit with parameters {memory_map}")
-#         result = _execute_and_read_result(
-#             quantum_computer,
-#             executable.copy(),
-#             measurement_id_map,
-#             resolver,
-#             memory_map=memory_map,
-#         )
-#         cirq_results.append(result)
-#
-#     return cirq_results
+def with_quilc_parametric_compilation(
+    *,
+    quantum_computer: QuantumComputer,
+    circuit: cirq.Circuit,
+    resolvers: Sequence[cirq.ParamResolverOrSimilarType],
+    repetitions: int,
+    transformer: transformers.CircuitTransformer = transformers.default,
+) -> List[cirq.Result]:
+    """This `CircuitSweepExecutor` will compile the `circuit` using quilc as a
+    parameterized `pyquil.api.QuantumExecutable` and on each iteration of
+    `resolvers`, rather than resolving the `circuit` with `cirq.protocols.resolve_parameters`,
+    it will attempt to cast the resolver to a dict and pass it as a memory map to
+    to `pyquil.api.QuantumComputer`.
+
+    Args:
+        quantum_computer: The `pyquil.api.QuantumComputer` against which to execute the circuit.
+        circuit: The `cirq.Circuit` to transform into a `pyquil.Program` and executed on the
+            `quantum_computer`.
+        resolvers: A sequence of parameter resolvers that this executor will write to memory
+            on a copy of the `pyquil.api.QuantumExecutable` for each parameter sweep.
+        repetitions: Number of times to run each iteration through the `resolvers`. For a given
+            resolver, the `cirq.Result` will include a measurement for each repetition.
+        transformer: A callable that transforms the `cirq.Circuit` into a `pyquil.Program`.
+            You may pass your own callable or any function from `cirq_rigetti.circuit_transformers`.
+
+    Returns:
+        A list of `cirq.Result`, each corresponding to a resolver in `resolvers`.
+    """
+
+    program, measurement_id_map = transformer(circuit=circuit)
+    program = _prepend_real_declarations(program=program, resolvers=resolvers)
+    program.wrap_in_numshots_loop(repetitions)
+    executable = quantum_computer.compile(program)
+
+    cirq_results = []
+    for resolver in resolvers:
+        memory_map = _get_param_dict(resolver)
+        logger.debug(f"running pre-compiled parametric circuit with parameters {memory_map}")
+        result = _execute_and_read_result(
+            quantum_computer,
+            executable.copy(),
+            measurement_id_map,
+            resolver,
+            memory_map=memory_map,
+        )
+        cirq_results.append(result)
+
+    return cirq_results
