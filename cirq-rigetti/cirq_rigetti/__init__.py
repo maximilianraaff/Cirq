@@ -39,5 +39,5 @@
 #
 # _register_resolver(_class_resolver_dictionary)
 
-from cirq_rigetti.sampler import RigettiQCSSampler, ExecutionCounter
+from cirq_rigetti.sampler import RigettiQCSSampler
 from cirq_rigetti import circuit_sweep_executors
