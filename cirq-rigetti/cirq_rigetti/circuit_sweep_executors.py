@@ -290,5 +290,6 @@ def with_quilc_parametric_compilation(
         )
         cirq_results.append(result)
     execution_counter.stamp(execution_number=execution_counter.execution_counter, stage="post_execution")
+    print(len(cirq_results))
 
     return cirq_results
