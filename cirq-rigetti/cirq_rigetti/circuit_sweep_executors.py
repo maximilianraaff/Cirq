@@ -25,6 +25,7 @@ import cirq
 from typing_extensions import Protocol
 from cirq_rigetti.logging import logger
 from cirq_rigetti import circuit_transformers as transformers
+from cirq_rigetti.sampler import ExecutionCounter
 
 
 def _execute_and_read_result(
@@ -244,6 +245,7 @@ def with_quilc_parametric_compilation(
     resolvers: Sequence[cirq.ParamResolverOrSimilarType],
     repetitions: int,
     transformer: transformers.CircuitTransformer = transformers.default,
+    execution_counter = ExecutionCounter()
 ) -> List[cirq.Result]:
     """This `CircuitSweepExecutor` will compile the `circuit` using quilc as a
     parameterized `pyquil.api.QuantumExecutable` and on each iteration of
@@ -261,15 +263,20 @@ def with_quilc_parametric_compilation(
             resolver, the `cirq.Result` will include a measurement for each repetition.
         transformer: A callable that transforms the `cirq.Circuit` into a `pyquil.Program`.
             You may pass your own callable or any function from `cirq_rigetti.circuit_transformers`.
+        execution_counter: A ExecutionCounter-instance that keeps track of the number of executions and stamps
+            the time for compilation and execution of one parameter sweep.
 
     Returns:
         A list of `cirq.Result`, each corresponding to a resolver in `resolvers`.
     """
 
+    execution_counter.add(1)
+    execution_counter.stamp(execution_number=execution_counter.execution_counter, stage="pre_compile")
     program, measurement_id_map = transformer(circuit=circuit)
     program = _prepend_real_declarations(program=program, resolvers=resolvers)
     program.wrap_in_numshots_loop(repetitions)
     executable = quantum_computer.compile(program)
+    execution_counter.stamp(execution_number=execution_counter.execution_counter, stage="post_compile")
 
     cirq_results = []
     for resolver in resolvers:
@@ -283,5 +290,6 @@ def with_quilc_parametric_compilation(
             memory_map=memory_map,
         )
         cirq_results.append(result)
+    execution_counter.stamp(execution_number=execution_counter.execution_counter, stage="post_execution")
 
     return cirq_results
