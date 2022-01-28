@@ -25,7 +25,7 @@ import cirq
 from typing_extensions import Protocol
 from cirq_rigetti.logging import logger
 from cirq_rigetti import circuit_transformers as transformers
-
+from cirq_rigetti import ExecutionCounter
 
 
 def _execute_and_read_result(
