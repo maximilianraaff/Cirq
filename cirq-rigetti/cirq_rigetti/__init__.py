@@ -13,6 +13,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 ##############################################################################
+from cirq_rigetti.execution_counter import ExecutionCounter
 from cirq_rigetti.sampler import (
     RigettiQCSSampler,
     get_rigetti_qcs_sampler,
