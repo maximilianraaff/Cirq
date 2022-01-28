@@ -25,8 +25,7 @@ import cirq
 from typing_extensions import Protocol
 from cirq_rigetti.logging import logger
 from cirq_rigetti import circuit_transformers as transformers
-from cirq_rigetti.sampler import ExecutionCounter
-
+from cirq_rigetti.execution_counter import ExecutionCounter
 
 def _execute_and_read_result(
     quantum_computer: QuantumComputer,

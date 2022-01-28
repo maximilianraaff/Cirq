@@ -16,7 +16,6 @@
 from cirq_rigetti.sampler import (
     RigettiQCSSampler,
     get_rigetti_qcs_sampler,
-    ExecutionCounter
 )
 from cirq_rigetti.service import (
     RigettiQCSService,
